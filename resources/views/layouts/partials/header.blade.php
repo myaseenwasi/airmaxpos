@@ -254,7 +254,7 @@
 </div>
 <!-- 🔔 Update Notification (Place in header or nav) -->
 <div id="update-alert" style="display: none !important; background: #fff3cd; padding: 10px 20px; border: 1px solid #ffeeba; color: #856404; font-weight: 500; display: flex; align-items: center; justify-content: space-between;">
-    🚀 A new update is availables! <button onclick="runUpdate()" style="margin-left: 15px; background: #28a745; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer;">Click to Update</button>
+    🚀 A new update is available! <button onclick="runUpdate()" style="margin-left: 15px; background: #28a745; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer;">Click to Update</button>
 </div>
 
 <!-- 🕓 Last update time (optional) -->
