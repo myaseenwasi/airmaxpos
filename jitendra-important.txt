@@ -1,0 +1,82 @@
+https://3.10.157.174:8443/login_up.php
+username: tech1
+pass: *zR908a6z
+
+=====================
+https://app.airmax.ai/
+pass: workpassword@123
+username: airmaxdemo
+
+=====================
+
+001END
+2290190118
+Pax
+airbusinesoluti50d4b6fca33546d982e831c6e65526
+charlestech
+
+=====================
+
+
+FTP Stage detail
+this for staging: Staging account
+user: stage
+t6w1Q6l?3
+
+FTP live detail
+Live account
+user: tech1
+pass: f0^03I6pg
+
+=====================
+
+
+
+==============================
+1 Second screen not working on live -- DONE
+=============================
+2 The cursor should always be in the search bar  -- DONE
+Commnet: 19062025
+-- DONE -- 
+window.addEventListener("afterprint" add in last of pos.js
+=============================
+
+3 after payment process with cash and the there is change to give
+after the receipt is printed the change should show up on the screen and when you click on enter it should go away
+
+-- Done
+=============================
+4 An option to show products you want to sell which will display on the pos screen
+
+==============================
+5 Add predetermine amount on the screen  so when you click on it, this will auto populate on the amount area
+Comment: https://prnt.sc/7Lxnxx6WcgSu
+==============================
+
+
+total_quantity
+total_payable_span
+total_paying
+change_return_span
+balance_due
+
+
+==================
+bitbucket access:
+info@airmax.ai
+Workpassword@123
+token: ATBBWmXLgnB2J2rFWS2g6vEhR2TYE0AF21FB
+
+==================
+
+git fetch --all
+for branch in $(git branch -r | grep -v '\->'); do
+  git branch --track "${branch#origin/}" "$branch" 2>/dev/null
+done
+for branch in $(git branch | sed 's/*//'); do
+  git checkout "$branch"
+  git pull
+done
+
+
+
