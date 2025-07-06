@@ -252,3 +252,51 @@
         </div>
     </div>
 </div>
+<!-- 🔔 Update Notification (Place in header or nav) -->
+<div id="update-alert" style="display: none !important; background: #fff3cd; padding: 10px 20px; border: 1px solid #ffeeba; color: #856404; font-weight: 500; display: flex; align-items: center; justify-content: space-between;">
+    🚀 A new update is available! <button onclick="runUpdate()" style="margin-left: 15px; background: #28a745; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer;">Click to Update</button>
+</div>
+
+<!-- 🕓 Last update time (optional) -->
+<p id="lastUpdate" style="margin: 0; font-size: 12px; color: gray;"></p>
+
+<!-- Axios for API calls -->
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+<script>
+function checkUpdate() {
+    axios.get('/api/pending-update')
+        .then(res => {
+            if (res.data.update_available) {
+                document.getElementById('update-alert').style.display = 'flex';
+            } else {
+                document.getElementById('update-alert').style.display = 'none'; 
+            }
+        });
+}
+setInterval(checkUpdate, 30000); // Every 30 seconds
+checkUpdate();
+
+function runUpdate() {
+    document.querySelector('#update-alert button').innerText = 'Updating...';
+    axios.post('/api/approve-update')
+        .then(res => {
+            alert("✅ Update successful!");
+            location.reload();
+        }).catch(err => {
+            alert("❌ Update failed!");
+        });
+}
+
+function fetchLastUpdate() {
+    axios.get('/api/last-update')
+        .then(res => {
+            const log = res.data;
+            if (log && log.updated_at) {
+                document.getElementById("lastUpdate").innerText =
+                    `🔄 Last updated: ${new Date(log.updated_at).toLocaleString()}`;
+            }
+        });
+}
+fetchLastUpdate();
+</script>

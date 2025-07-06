@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Http\Request;
-
+use App\Http\Controllers\UpdateController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -16,3 +16,7 @@ use Illuminate\Http\Request;
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+Route::get('/pending-update', [UpdateController::class, 'pending']);
+Route::post('/approve-update', [UpdateController::class, 'approve']);
+Route::get('/last-update', [UpdateController::class, 'last']);

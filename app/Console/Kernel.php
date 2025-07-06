@@ -15,6 +15,8 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
+        // $schedule->command('check:update')->everyThirtyMinutes(); // or hourly()
+        $schedule->command('check:update')->everyMinute(); // or hourly()
         $env = config('app.env');
         $email = config('mail.username');
 
