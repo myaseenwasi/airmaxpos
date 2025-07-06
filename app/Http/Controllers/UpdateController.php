@@ -120,17 +120,17 @@ class UpdateController extends Controller
         //     ->latest()
         //     ->first();
 
-        return response()->json([
-            'update_available' => true,
-            'log_id' => 1,
-            'message' => "Version 1.0.5 is available",
-        ]);
-
         // return response()->json([
-        //     'update_available' => false,
-        //     'log_id' => 0,
-        //     'message' => "",
+        //     'update_available' => true,
+        //     'log_id' => 1,
+        //     'message' => "Version 1.0.5 is available",
         // ]);
+
+        return response()->json([
+            'update_available' => false,
+            'log_id' => 0,
+            'message' => "",
+        ]);
     }
 
     public function approve(Request $request)
@@ -167,78 +167,6 @@ class UpdateController extends Controller
         return UpdateLog::latest()->first();
     }
 
-    // public function exportCompleteData(Request $request)
-    // {
-    //     $export_format = $request->input('export_format');
-    //     $user_id = $request->input('user_id');
-    //     $business_id = $request->input('business_id');
-
-    //     if (empty($user_id) && empty($business_id)) {
-    //         return response()->json(['error' => 'Either user_id or business_id must be provided'], 400);
-    //     }
-
-    //     if (!in_array($export_format, ['json', 'csv', 'xml'])) {
-    //         return response()->json(['error' => 'Invalid export format'], 400);
-    //     }
-    //     // Initialize export data array
-    //     $exportData = [];
-
-    //     // Get user and business info if provided
-    //     if (!empty($user_id)) {
-    //         $user = User::find($user_id);
-    //         if (!$user) {
-    //             return response()->json(['error' => 'User not found'], 404);
-    //         }
-    //         $exportData['user_info'] = $user;
-    //     }
-      
-    //     if (!empty($business_id)) {
-    //         $business = Business::find($business_id);
-    //         if (!$business) {
-    //             return response()->json(['error' => 'Business not found'], 404);
-    //         }
-    //         $exportData['business_info'] = $business;
-    //     }
-        
-    //     // Export data from each table
-    //     foreach ($this->tablesToExport as $table) {
-    //         try {
-    //             $query = DB::table($table);
-              
-    //             // Filter by user_id if provided (for tables that have user_id/created_by)
-    //             if (!empty($user_id)) {
-    //                 if (in_array('user_id', $this->getTableColumns($table))) {
-    //                     $query->where('user_id', $user_id);
-    //                 } elseif (in_array('created_by', $this->getTableColumns($table))) {
-    //                     $query->where('created_by', $user_id);
-    //                 }
-    //             }
-                
-    //             // Filter by business_id if provided
-    //             if (!empty($business_id) && in_array('business_id', $this->getTableColumns($table))) {
-    //                 $query->where('business_id', $business_id);
-    //             }
-                
-    //             $exportData[$table] = $query->get();
-    //         } catch (\Exception $e) {
-    //             // Log error but continue with other tables
-    //             Log::error("Error exporting table $table: " . $e->getMessage());
-    //             $exportData[$table] = ['error' => 'Could not export table'];
-    //         }
-    //     }
-    //     return $exportData;die;
-    //     // Return data in requested format
-    //     switch ($export_format) {
-    //         case 'json':
-    //             return response()->json($exportData);
-    //         case 'csv':
-    //             return $this->convertToCsv($exportData);
-    //         case 'xml':
-    //             return $this->convertToXml($exportData);
-    //         default:
-    //             return response()->json($exportData);
-    //     }
-    // }
 
     public function exportCompleteData(Request $request)
     {
@@ -261,191 +189,148 @@ class UpdateController extends Controller
         // For debugging - check data before export
         Log::info('Export data collected', ['tables' => array_keys($exportData)]);
 
-    // Return in requested format
-    switch ($export_format) {
-        case 'json': return response()->json($exportData);
-        case 'csv': return $this->convertToCsv($exportData);
-        case 'xml': return $this->convertToXml($exportData);
-        case 'sql': return $this->generateSqlDownload($exportData, $user_id, $business_id);
-        default: return response()->json($exportData);
+        // Return in requested format
+        switch ($export_format) {
+            case 'json': return response()->json($exportData);
+            case 'csv': return $this->convertToCsv($exportData);
+            case 'xml': return $this->convertToXml($exportData);
+            case 'sql': return $this->generateSqlDownload($exportData, $user_id, $business_id);
+            default: return response()->json($exportData);
+        }
     }
-}
 
-private function fetchExportData($user_id, $business_id)
-{
-    $exportData = [];
-    
-    foreach ($this->tablesToExport as $table) {
-        try {
-            $query = DB::table($table);
-            
-            
+    private function fetchExportData($user_id, $business_id)
+    {
+        $exportData = [];
+        
+        foreach ($this->tablesToExport as $table) {
+            try {
+                $query = DB::table($table);
+                
+                
 
-            if($table == "business"){
-                $query->where('id', $business_id);
-            } else {
-                if ($business_id && in_array('business_id', $this->getTableColumns($table))) {
-                    $query->where('business_id', $business_id);
-                } else if ($user_id) {
-                    if (in_array('user_id', $this->getTableColumns($table))) {
-                        $query->where('user_id', $user_id);
-                    } elseif (in_array('created_by', $this->getTableColumns($table))) {
-                        $query->where('created_by', $user_id);
+                if($table == "business"){
+                    $query->where('id', $business_id);
+                } else {
+                    if ($business_id && in_array('business_id', $this->getTableColumns($table))) {
+                        $query->where('business_id', $business_id);
+                    } else if ($user_id) {
+                        if (in_array('user_id', $this->getTableColumns($table))) {
+                            $query->where('user_id', $user_id);
+                        } elseif (in_array('created_by', $this->getTableColumns($table))) {
+                            $query->where('created_by', $user_id);
+                        }
                     }
                 }
-            }
-            
-            $results = $query->get();
-            
-            if ($results->isNotEmpty()) {
-                $exportData[$table] = $results;
-            }
-            
-        } catch (\Exception $e) {
-            Log::error("Error exporting table $table: " . $e->getMessage());
-            $exportData[$table] = ['error' => 'Could not export table'];
-        }
-    }
-    
-    return $exportData;
-}
-
-// private function generateSqlDownload($data, $user_id, $business_id)
-// {
-//     // Create a temporary file
-//     $tempFile = tempnam(sys_get_temp_dir(), 'sql_export_');
-//     $handle = fopen($tempFile, 'w');
-    
-//     // Write SQL to file`
-//     foreach ($data as $table => $records) {
-//         if ($table === 'user_info' || $table === 'business_info' || !is_iterable($records)) {
-//             continue;
-//         }
-        
-//         if (count($records) > 0) {
-//             $columns = array_keys((array)$records[0]);
-//             // fwrite($handle, "-- Table: $table\n");
-//             fwrite($handle, "INSERT INTO `$table` (`" . implode('`,`', $columns) . "`) VALUES\n");
-            
-//             foreach ($records as $i => $record) {
-//                 $record = (array)$record;
-//                 $values = array_map(function($value) {
-//                     if ($value === null) return 'NULL';
-//                     if (is_numeric($value)) return $value;
-//                     if (is_bool($value)) return $value ? 1 : 0;
-//                     return "'" . addslashes($value) . "'";
-//                 }, array_values($record));
                 
-//                 fwrite($handle, "(" . implode(",", $values) . ")");
-//                 fwrite($handle, ($i < count($records)-1 ? ",\n" : ";\n\n"));
-//             }
-//         }
-//     }
-    
-//     fclose($handle);
-    
-//     // Create download response
-//     $filename = 'export_' . ($user_id ? 'user_'.$user_id : 'business_'.$business_id) . '.sql';
-    
-//     return response()->download($tempFile, $filename, [
-//         'Content-Type' => 'application/sql',
-//     ])->deleteFileAfterSend(true);
-// }
-
-
-private function generateSqlDownload($data, $user_id, $business_id)
-{
-    // Create a temporary file
-    $tempFile = tempnam(sys_get_temp_dir(), 'sql_export_');
-    $handle = fopen($tempFile, 'w');
-    
-    // Write SQL header
-    fwrite($handle, "-- POS Data Export (INSERT statements only)\n");
-    fwrite($handle, "-- Generated: " . date('Y-m-d H:i:s') . "\n");
-    fwrite($handle, "-- User ID: " . ($user_id ?? 'N/A') . "\n");
-    fwrite($handle, "-- Business ID: " . ($business_id ?? 'N/A') . "\n\n");
-    
-    // Disable foreign key checks temporarily
-    fwrite($handle, "SET FOREIGN_KEY_CHECKS = 0;\n");
-    fwrite($handle, "SET SQL_MODE = 'NO_AUTO_VALUE_ON_ZERO';\n\n");
-
-    // Process business_info first (if exists)
-    if (isset($data['business_info'])) {
-        $businessData = (array)$data['business_info'];
-        $columns = array_keys($businessData);
-        $columnsStr = '`' . implode('`,`', $columns) . '`';
-        
-        $values = array_map(function($value) {
-            if (is_null($value)) return 'NULL';
-            if (is_numeric($value)) return $value;
-            if (is_bool($value)) return $value ? 1 : 0;
-            if ($value === '0000-00-00 00:00:00') return 'NULL';
-            return "'" . addslashes($value) . "'";
-        }, array_values($businessData));
-        
-        fwrite($handle, "-- Business information\n");
-        fwrite($handle, "INSERT INTO `business` ($columnsStr) VALUES (".implode(",", $values).");\n\n");
-    }
-
-    // Process all other tables
-    foreach ($data as $table => $records) {
-        // Skip metadata tables we already processed
-        if ($table === 'user_info' || $table === 'business_info') {
-            continue;
-        }
-        
-        // Skip if not iterable or empty
-        if (!is_iterable($records) || 
-            (is_array($records) && empty($records)) || 
-            (is_object($records) && method_exists($records, 'isEmpty') && $records->isEmpty())) {
-            continue;
-        }
-
-        // Convert to array if Collection
-        $recordsArray = is_object($records) && method_exists($records, 'toArray') 
-            ? $records->toArray() 
-            : (array)$records;
-
-        // Get columns from first record
-        $firstRecord = (array)$recordsArray[0];
-        $columns = array_keys($firstRecord);
-        $columnsStr = '`' . implode('`,`', $columns) . '`';
-        
-        fwrite($handle, "-- Data for table `$table`\n");
-        
-        // Process in chunks
-        $chunks = array_chunk($recordsArray, 100);
-        foreach ($chunks as $chunk) {
-            fwrite($handle, "INSERT INTO `$table` ($columnsStr) VALUES\n");
-            
-            foreach ($chunk as $i => $record) {
-                $record = (array)$record;
-                $values = array_map(function($value) {
-                    if (is_null($value)) return 'NULL';
-                    if (is_numeric($value)) return $value;
-                    if (is_bool($value)) return $value ? 1 : 0;
-                    if ($value === '0000-00-00 00:00:00') return 'NULL';
-                    return "'" . addslashes($value) . "'";
-                }, array_values($record));
+                $results = $query->get();
                 
-                fwrite($handle, "(" . implode(",", $values) . ")");
-                fwrite($handle, ($i < count($chunk)-1 ? ",\n" : ";\n\n"));
+                if ($results->isNotEmpty()) {
+                    $exportData[$table] = $results;
+                }
+                
+            } catch (\Exception $e) {
+                Log::error("Error exporting table $table: " . $e->getMessage());
+                $exportData[$table] = ['error' => 'Could not export table'];
             }
         }
+        
+        return $exportData;
     }
-    
-    // Re-enable foreign key checks
-    fwrite($handle, "SET FOREIGN_KEY_CHECKS = 1;\n");
-    
-    fclose($handle);
-    
-    // Create download response
-    $filename = 'pos_export_' . ($user_id ? 'user_'.$user_id : 'business_'.$business_id) . '.sql';
-    
-    return response()->download($tempFile, $filename, [
-        'Content-Type' => 'application/sql',
-    ])->deleteFileAfterSend(true);
-}
+
+    private function generateSqlDownload($data, $user_id, $business_id)
+    {
+        // Create a temporary file
+        $tempFile = tempnam(sys_get_temp_dir(), 'sql_export_');
+        $handle = fopen($tempFile, 'w');
+        
+        // Write SQL header
+        fwrite($handle, "-- POS Data Export (INSERT statements only)\n");
+        fwrite($handle, "-- Generated: " . date('Y-m-d H:i:s') . "\n");
+        fwrite($handle, "-- User ID: " . ($user_id ?? 'N/A') . "\n");
+        fwrite($handle, "-- Business ID: " . ($business_id ?? 'N/A') . "\n\n");
+        
+        // Disable foreign key checks temporarily
+        fwrite($handle, "SET FOREIGN_KEY_CHECKS = 0;\n");
+        fwrite($handle, "SET SQL_MODE = 'NO_AUTO_VALUE_ON_ZERO';\n\n");
+
+        // Process business_info first (if exists)
+        if (isset($data['business_info'])) {
+            $businessData = (array)$data['business_info'];
+            $columns = array_keys($businessData);
+            $columnsStr = '`' . implode('`,`', $columns) . '`';
+            
+            $values = array_map(function($value) {
+                if (is_null($value)) return 'NULL';
+                if (is_numeric($value)) return $value;
+                if (is_bool($value)) return $value ? 1 : 0;
+                if ($value === '0000-00-00 00:00:00') return 'NULL';
+                return "'" . addslashes($value) . "'";
+            }, array_values($businessData));
+            
+            fwrite($handle, "-- Business information\n");
+            fwrite($handle, "INSERT INTO `business` ($columnsStr) VALUES (".implode(",", $values).");\n\n");
+        }
+
+        // Process all other tables
+        foreach ($data as $table => $records) {
+            // Skip metadata tables we already processed
+            if ($table === 'user_info' || $table === 'business_info') {
+                continue;
+            }
+            
+            // Skip if not iterable or empty
+            if (!is_iterable($records) || 
+                (is_array($records) && empty($records)) || 
+                (is_object($records) && method_exists($records, 'isEmpty') && $records->isEmpty())) {
+                continue;
+            }
+
+            // Convert to array if Collection
+            $recordsArray = is_object($records) && method_exists($records, 'toArray') 
+                ? $records->toArray() 
+                : (array)$records;
+
+            // Get columns from first record
+            $firstRecord = (array)$recordsArray[0];
+            $columns = array_keys($firstRecord);
+            $columnsStr = '`' . implode('`,`', $columns) . '`';
+            
+            fwrite($handle, "-- Data for table `$table`\n");
+            
+            // Process in chunks
+            $chunks = array_chunk($recordsArray, 100);
+            foreach ($chunks as $chunk) {
+                fwrite($handle, "INSERT INTO `$table` ($columnsStr) VALUES\n");
+                
+                foreach ($chunk as $i => $record) {
+                    $record = (array)$record;
+                    $values = array_map(function($value) {
+                        if (is_null($value)) return 'NULL';
+                        if (is_numeric($value)) return $value;
+                        if (is_bool($value)) return $value ? 1 : 0;
+                        if ($value === '0000-00-00 00:00:00') return 'NULL';
+                        return "'" . addslashes($value) . "'";
+                    }, array_values($record));
+                    
+                    fwrite($handle, "(" . implode(",", $values) . ")");
+                    fwrite($handle, ($i < count($chunk)-1 ? ",\n" : ";\n\n"));
+                }
+            }
+        }
+        
+        // Re-enable foreign key checks
+        fwrite($handle, "SET FOREIGN_KEY_CHECKS = 1;\n");
+        
+        fclose($handle);
+        
+        // Create download response
+        $filename = 'pos_export_' . ($user_id ? 'user_'.$user_id : 'business_'.$business_id) . '.sql';
+        
+        return response()->download($tempFile, $filename, [
+            'Content-Type' => 'application/sql',
+        ])->deleteFileAfterSend(true);
+    }
 
     private function getTableColumns($table)
     {
