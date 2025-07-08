@@ -7,7 +7,7 @@ use App\UpdateLog;
 use App\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-
+use Illuminate\Support\Facades\Http;
 class UpdateController extends Controller
 {
     // List of all tables to export
@@ -114,22 +114,58 @@ class UpdateController extends Controller
         'warranties'
     ];
 
-    public function pending()
-    {
-        // $log = UpdateLog::where('update_available', true)
-        //     ->latest()
-        //     ->first();
+    // public function pending()
+    // {
+    //     // $log = UpdateLog::where('update_available', true)
+    //     //     ->latest()
+    //     //     ->first();
 
-        // return response()->json([
-        //     'update_available' => true,
-        //     'log_id' => 1,
-        //     'message' => "Version 1.0.5 is available",
-        // ]);
+    //     // return response()->json([
+    //     //     'update_available' => true,
+    //     //     'log_id' => 1,
+    //     //     'message' => "Version 1.0.5 is available",
+    //     // ]);
+
+    //     return response()->json([
+    //         'update_available' => false,
+    //         'log_id' => 0,
+    //         'message' => "",
+    //     ]);
+    // }
+
+
+    public function pending(Request $request)
+    {
+        $clientVersion = $request->input('version'); // e.g. 1.0.3
+
+        // External API hit karo
+        $response = Http::get('https://your-live-server.com/api/version');
+
+        if (!$response->successful()) {
+            return response()->json([
+                'update_available' => false,
+                'log_id' => 0,
+                'message' => 'Failed to check for update. Try again later.',
+            ], 500);
+        }
+
+        $latestVersion = $response->json('version'); // assuming API returns: { "version": "1.0.5" }
+
+        if (version_compare($clientVersion, $latestVersion, '>=')) {
+            return response()->json([
+                'update_available' => false,
+                'log_id' => 0,
+                'message' => '',
+                'current_version' => $clientVersion,
+            ]);
+        }
 
         return response()->json([
-            'update_available' => false,
-            'log_id' => 0,
-            'message' => "",
+            'update_available' => true,
+            'log_id' => 1, // dummy ID, or skip
+            'message' => "New update {$latestVersion} is available.",
+            'version' => $latestVersion,
+            'current_version' => $clientVersion,
         ]);
     }
 

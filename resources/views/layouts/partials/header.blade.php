@@ -258,7 +258,7 @@
 </div>
 
 <!-- 🕓 Last update time (optional) -->
-<p id="lastUpdate" style="margin: 0; font-size: 12px; color: gray;"></p>
+<!-- <p id="lastUpdate" style="margin: 0; font-size: 12px; color: gray;"></p> -->
 
 <!-- Axios for API calls -->
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
