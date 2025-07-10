@@ -9,6 +9,7 @@ use App\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\File;
 class UpdateController extends Controller
 {
     // List of all tables to export
@@ -26,129 +27,6 @@ class UpdateController extends Controller
         }
         return $this->tablesToExport;
     }
-    // private $tablesToExport = [
-    //     'account_transactions',
-    //     'account_types',
-    //     'accounting_acc_trans_mappings',
-    //     'accounting_account_types',
-    //     'accounting_accounts',
-    //     'accounting_accounts_transactions',
-    //     'accounting_budgets',
-    //     'accounts',
-    //     // 'activity_log',
-    //     'barcodes',
-    //     'bookings',
-    //     'brands',
-    //     'business',
-    //     'business_locations',
-    //     'cash_denominations',
-    //     'cash_register_transactions',
-    //     'cash_registers',
-    //     'categories',
-    //     'categorizables',
-    //     'contacts',
-    //     'currencies',
-    //     'customer_groups',
-    //     'dashboard_configurations',
-    //     'devices',
-    //     'discount_variations',
-    //     'discounts',
-    //     'document_and_notes',
-    //     'essentials_allowances_and_deductions',
-    //     'essentials_attendances',
-    //     'essentials_document_shares',
-    //     'essentials_documents',
-    //     'essentials_holidays',
-    //     'essentials_kb',
-    //     'essentials_kb_users',
-    //     'essentials_leave_types',
-    //     'essentials_leaves',
-    //     'essentials_messages',
-    //     'essentials_payroll_group_transactions',
-    //     'essentials_payroll_groups',
-    //     'essentials_reminders',
-    //     'essentials_shifts',
-    //     'essentials_to_dos',
-    //     'essentials_todo_comments',
-    //     'essentials_todos_users',
-    //     'essentials_user_allowance_and_deductions',
-    //     'essentials_user_sales_targets',
-    //     'essentials_user_shifts',
-    //     'expense_categories',
-    //     'group_sub_taxes',
-    //     'invoice_layouts',
-    //     'invoice_schemes',
-    //     'media',
-    //     'migrations',
-    //     'model_has_permissions',
-    //     'model_has_roles',
-    //     'notification_templates',
-    //     'notifications',
-    //     'oauth_access_tokens',
-    //     'oauth_auth_codes',
-    //     'oauth_clients',
-    //     'oauth_personal_access_clients',
-    //     'oauth_refresh_tokens',
-    //     'packages',
-    //     'password_resets',
-    //     'permissions',
-    //     'printers',
-    //     'product_locations',
-    //     'product_racks',
-    //     'product_variations',
-    //     'products',
-    //     'purchase_lines',
-    //     'reference_counts',
-    //     'res_product_modifier_sets',
-    //     'res_tables',
-    //     'role_has_permissions',
-    //     'roles',
-    //     'sell_line_warranties',
-    //     'selling_price_groups',
-    //     'sessions',
-    //     'stock_adjustment_lines',
-    //     'subscriptions',
-    //     'superadmin_communicator_logs',
-    //     'superadmin_coupons',
-    //     'superadmin_frontend_pages',
-    //     'system',
-    //     'tax_rates',
-    //     'transaction_payments',
-    //     'transaction_sell_lines',
-    //     'transaction_sell_lines_purchase_lines',
-    //     'transactions',
-    //     'types_of_services',
-    //     'units',
-    //     'user_contact_access',
-    //     'users',
-    //     'update_logs',
-    //     'variation_group_prices',
-    //     'variation_location_details',
-    //     'variation_templates',
-    //     'variation_value_templates',
-    //     'variations',
-    //     'warranties'
-    // ];
-
-    // public function pending()
-    // {
-    //     // $log = UpdateLog::where('update_available', true)
-    //     //     ->latest()
-    //     //     ->first();
-
-    //     // return response()->json([
-    //     //     'update_available' => true,
-    //     //     'log_id' => 1,
-    //     //     'message' => "Version 1.0.5 is available",
-    //     // ]);
-
-    //     return response()->json([
-    //         'update_available' => false,
-    //         'log_id' => 0,
-    //         'message' => "",
-    //     ]);
-    // }
-
 
     public function pending(Request $request)
     {
@@ -492,4 +370,61 @@ class UpdateController extends Controller
             'Content-Disposition' => 'attachment; filename="complete_export.xml"',
         ]);
     }
+
+    public function importSql(Request $request)
+{
+    $request->validate([
+        'sql_file' => 'required|file',
+    ]);
+
+    if ($request->file('sql_file')->getClientOriginalExtension() !== 'sql') {
+        return response()->json([
+            'success' => false,
+            'message' => 'Only .sql files are allowed.',
+        ]);
+    }
+
+    $sqlContent = file_get_contents($request->file('sql_file')->getRealPath());
+
+    try {
+        DB::beginTransaction();
+
+        // Disable foreign key checks
+        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+
+        // Get all table names
+        // $database = env('DB_DATABASE');
+        // $tables = DB::select("SELECT table_name FROM information_schema.tables WHERE table_schema = ?", [$database]);
+
+        // foreach ($tables as $table) {
+        //     $tableName = $table->table_name;
+
+        //     // Skip Laravel system tables if needed
+        //     if (!in_array($tableName, ['migrations', 'password_resets', 'failed_jobs'])) {
+        //         DB::statement("TRUNCATE TABLE `$tableName`");
+        //     }
+        // }
+
+        // Import SQL file
+        DB::unprepared($sqlContent);
+
+        // Re-enable FK checks
+        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+
+        DB::commit();
+
+        return response()->json([
+            'success' => true,
+            'message' => '✅ SQL imported successfully.',
+        ]);
+    } catch (\Exception $e) {
+        DB::rollBack();
+        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+
+        return response()->json([
+            'success' => false,
+            'message' => '❌ Import failed: ' . $e->getMessage(),
+        ]);
+    }
+}
 }

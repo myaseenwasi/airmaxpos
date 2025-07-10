@@ -106,6 +106,10 @@
     @endif
         </div>
         <div class="col-md-4">
+            @if (session('status'))
+                <div class="alert alert-success">{{ session('status') }}</div>
+            @endif
+
             <div
                 class="tw-p-5 md:tw-p-6 tw-mb-4 tw-rounded-2xl tw-transition-all tw-duration-200 tw-bg-white tw-shadow-sm tw-ring-1 tw-ring-gray-200">
                 <div class="tw-flex tw-flex-col tw-gap-4 tw-dw-rounded-box tw-dw-p-6 tw-dw-max-w-md">
@@ -211,6 +215,29 @@
                                         class="tw-text-sm tw-font-medium tw-bg-gradient-to-r tw-from-indigo-500 tw-to-blue-500 tw-inline-block tw-text-transparent tw-bg-clip-text hover:tw-text-[#467BF5] hover:tw-underline">{{ __('business.register_now') }}</span></a>
                             @endif
                         @endif
+                        @if ($is_user_empty)
+                            <div id="import-box" class="tw-bg-blue-50 tw-border tw-border-blue-200 tw-rounded-xl tw-p-4 tw-mt-4 tw-shadow-sm tw-transition-all tw-duration-300">
+                                <div class="tw-flex tw-items-start tw-gap-3">
+                                    <div class="tw-text-blue-600">
+                                        <i class="fas fa-database fa-lg"></i>
+                                    </div>
+                                    <div class="tw-flex-1">
+                                        <h3 class="tw-font-semibold tw-text-sm md:tw-text-base tw-text-blue-800 tw-mb-1">Already a member?</h3>
+                                        <p class="tw-text-sm tw-text-gray-600 tw-mb-3">Import your previous backup SQL file to continue using the system.</p>
+                                        <form id="sql-import-form" enctype="multipart/form-data">
+                                            @csrf
+                                            <input type="file" id="sql_file" name="sql_file" accept=".sql" required class="form-control mb-2" />
+                                            <button type="submit" class="btn btn-primary btn-sm">Import Backup</button>
+                                        </form>
+                                        <div id="import-status" class="tw-mt-2 tw-text-sm tw-text-gray-600"></div>
+                                    </div>
+                                    <button onclick="hideImportBox()" class="tw-text-gray-400 hover:tw-text-gray-600 tw-ml-auto tw-text-lg">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        @endif
+
                     </div>
                 </div>
             </div>
@@ -221,6 +248,12 @@
 @stop
 @section('javascript')
     <script type="text/javascript">
+        function hideImportBox() {
+            const box = document.getElementById('import-box');
+            if (box) {
+                box.style.display = 'none';
+            }
+        }
         $(document).ready(function() {
             $('#show_hide_icon').off('click');
             $('.change_lang').click(function() {
@@ -247,5 +280,34 @@
             }
         });
         })
+        document.getElementById('sql-import-form').addEventListener('submit', function(e) {
+            e.preventDefault(); // stop default form submit
+
+            const form = e.target;
+            const formData = new FormData(form);
+
+            // Optional: show loading
+            document.getElementById('import-status').innerText = 'Importing...';
+
+            fetch("{{ url('/api/import-sql') }}", {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: formData
+            })
+            .then(async response => {
+                if (!response.ok) throw new Error(await response.text());
+                return response.json();
+            })
+            .then(data => {
+                document.getElementById('import-status').innerText = '✅ Import successful!';
+                setTimeout(hideImportBox, 1000);
+            })
+            .catch(error => {
+                console.error(error);
+                document.getElementById('import-status').innerText = '❌ Import failed. ' + error.message;
+            });
+        });
     </script>
 @endsection

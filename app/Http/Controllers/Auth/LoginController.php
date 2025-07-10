@@ -9,7 +9,7 @@ use App\Utils\ModuleUtil;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\Request;
 use App\Rules\ReCaptcha;
-
+use App\User;
 
 class LoginController extends Controller
 {
@@ -54,7 +54,8 @@ class LoginController extends Controller
 
     public function showLoginForm()
     {
-        return view('auth.login');
+        $is_user_empty = User::count() == 0;
+        return view('auth.login', compact('is_user_empty'));
     }
 
     /**

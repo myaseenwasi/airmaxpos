@@ -53,6 +53,11 @@
                 @if (Module::has('Essentials'))
                     @includeIf('essentials::layouts.partials.header_part')
                 @endif
+                @if(auth()->check() && session()->has('business.id'))
+                    <button style="color: white;" onclick="downloadSqlExport()" class="btn btn-outline-primary btn-sm tw-mb-3">
+                        📥 Download SQL Backup
+                    </button>
+                @endif
                 <details class="tw-dw-dropdown tw-relative tw-inline-block tw-text-left">
                     <summary
                         class="tw-inline-flex tw-transition-all tw-ring-1 tw-ring-white/10 hover:tw-text-white tw-cursor-pointer tw-duration-200 tw-bg-@if(!empty(session('business.theme_color'))){{session('business.theme_color')}}@else{{'primary'}}@endif-800 hover:tw-bg-@if(!empty(session('business.theme_color'))){{session('business.theme_color')}}@else{{'primary'}}@endif-700 tw-py-1.5 tw-px-3 tw-rounded-lg tw-items-center tw-justify-center tw-text-sm tw-font-medium tw-text-white tw-gap-1">
@@ -256,6 +261,11 @@
 <div id="update-alert" style="display: none !important; background: #fff3cd; padding: 10px 20px; border: 1px solid #ffeeba; color: #856404; font-weight: 500; display: flex; align-items: center; justify-content: space-between;">
     🚀 A new update is available! <button onclick="runUpdate()" style="margin-left: 15px; background: #28a745; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer;">Click to Update</button>
 </div>
+@if(auth()->check() && session()->has('business.id'))
+    <button onclick="downloadSqlExport()" class="btn btn-outline-primary btn-sm tw-mb-3">
+        📥 Download SQL Backup
+    </button>
+@endif
 
 <!-- 🕓 Last update time (optional) -->
 <!-- <p id="lastUpdate" style="margin: 0; font-size: 12px; color: gray;"></p> -->
@@ -299,4 +309,27 @@ function fetchLastUpdate() {
         });
 }
 fetchLastUpdate();
+
+function downloadSqlExport() {
+    const userId = {{ auth()->user()->id }};
+    const businessId = {{ session('business.id') }};
+    const exportUrl = `/api/export-complete-data`;
+
+    axios.post(exportUrl, {
+        export_format: 'sql',
+        user_id: userId,
+        business_id: businessId
+    })
+    .then(response => {
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `pos-sql-export-${userId}-${businessId}.sql`);
+        document.body.appendChild(link);
+        link.click();
+    })
+    .catch(error => {
+        console.error(error);
+    });
+}
 </script>
