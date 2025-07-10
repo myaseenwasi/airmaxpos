@@ -21,6 +21,7 @@ Route::get('/pending-update', [UpdateController::class, 'pending']);
 Route::post('/approve-update', [UpdateController::class, 'approve']);
 Route::get('/last-update', [UpdateController::class, 'last']);
 Route::post('/export-complete-data', [UpdateController::class, 'exportCompleteData']);
+Route::get('/version', [UpdateController::class, 'version']);
 // Auth::routes();
 // Route::middleware('auth:api')->get('/export-complete-data', 
 //     [UpdateController::class, 'exportCompleteData']);

@@ -1,6 +1,7 @@
 <?php
 namespace App\Http\Controllers;
 
+use App\AppVersion;
 use App\Business;
 use Illuminate\Http\Request;
 use App\UpdateLog;
@@ -11,108 +12,123 @@ use Illuminate\Support\Facades\Http;
 class UpdateController extends Controller
 {
     // List of all tables to export
-    private $tablesToExport = [
-        'account_transactions',
-        'account_types',
-        'accounting_acc_trans_mappings',
-        'accounting_account_types',
-        'accounting_accounts',
-        'accounting_accounts_transactions',
-        'accounting_budgets',
-        'accounts',
-        // 'activity_log',
-        'barcodes',
-        'bookings',
-        'brands',
-        'business',
-        'business_locations',
-        'cash_denominations',
-        'cash_register_transactions',
-        'cash_registers',
-        'categories',
-        'categorizables',
-        'contacts',
-        'currencies',
-        'customer_groups',
-        'dashboard_configurations',
-        'devices',
-        'discount_variations',
-        'discounts',
-        'document_and_notes',
-        'essentials_allowances_and_deductions',
-        'essentials_attendances',
-        'essentials_document_shares',
-        'essentials_documents',
-        'essentials_holidays',
-        'essentials_kb',
-        'essentials_kb_users',
-        'essentials_leave_types',
-        'essentials_leaves',
-        'essentials_messages',
-        'essentials_payroll_group_transactions',
-        'essentials_payroll_groups',
-        'essentials_reminders',
-        'essentials_shifts',
-        'essentials_to_dos',
-        'essentials_todo_comments',
-        'essentials_todos_users',
-        'essentials_user_allowance_and_deductions',
-        'essentials_user_sales_targets',
-        'essentials_user_shifts',
-        'expense_categories',
-        'group_sub_taxes',
-        'invoice_layouts',
-        'invoice_schemes',
-        'media',
-        'migrations',
-        'model_has_permissions',
-        'model_has_roles',
-        'notification_templates',
-        'notifications',
-        'oauth_access_tokens',
-        'oauth_auth_codes',
-        'oauth_clients',
-        'oauth_personal_access_clients',
-        'oauth_refresh_tokens',
-        'packages',
-        'password_resets',
-        'permissions',
-        'printers',
-        'product_locations',
-        'product_racks',
-        'product_variations',
-        'products',
-        'purchase_lines',
-        'reference_counts',
-        'res_product_modifier_sets',
-        'res_tables',
-        'role_has_permissions',
-        'roles',
-        'sell_line_warranties',
-        'selling_price_groups',
-        'sessions',
-        'stock_adjustment_lines',
-        'subscriptions',
-        'superadmin_communicator_logs',
-        'superadmin_coupons',
-        'superadmin_frontend_pages',
-        'system',
-        'tax_rates',
-        'transaction_payments',
-        'transaction_sell_lines',
-        'transaction_sell_lines_purchase_lines',
-        'transactions',
-        'types_of_services',
-        'units',
-        'user_contact_access',
-        'users',
-        'variation_group_prices',
-        'variation_location_details',
-        'variation_templates',
-        'variation_value_templates',
-        'variations',
-        'warranties'
-    ];
+    
+    private $tablesToExport = [];
+
+    private function getTablesToExport()
+    {
+        $tables = DB::select('SHOW TABLES');
+        foreach ($tables as $table) {
+            $tableName = array_values((array) $table)[0];
+            if (strpos($tableName, 'migrations') === false && strpos($tableName, 'password_resets') === false && $tableName != 'activity_log') {
+                $this->tablesToExport[] = $tableName;
+            }
+        }
+        return $this->tablesToExport;
+    }
+    // private $tablesToExport = [
+    //     'account_transactions',
+    //     'account_types',
+    //     'accounting_acc_trans_mappings',
+    //     'accounting_account_types',
+    //     'accounting_accounts',
+    //     'accounting_accounts_transactions',
+    //     'accounting_budgets',
+    //     'accounts',
+    //     // 'activity_log',
+    //     'barcodes',
+    //     'bookings',
+    //     'brands',
+    //     'business',
+    //     'business_locations',
+    //     'cash_denominations',
+    //     'cash_register_transactions',
+    //     'cash_registers',
+    //     'categories',
+    //     'categorizables',
+    //     'contacts',
+    //     'currencies',
+    //     'customer_groups',
+    //     'dashboard_configurations',
+    //     'devices',
+    //     'discount_variations',
+    //     'discounts',
+    //     'document_and_notes',
+    //     'essentials_allowances_and_deductions',
+    //     'essentials_attendances',
+    //     'essentials_document_shares',
+    //     'essentials_documents',
+    //     'essentials_holidays',
+    //     'essentials_kb',
+    //     'essentials_kb_users',
+    //     'essentials_leave_types',
+    //     'essentials_leaves',
+    //     'essentials_messages',
+    //     'essentials_payroll_group_transactions',
+    //     'essentials_payroll_groups',
+    //     'essentials_reminders',
+    //     'essentials_shifts',
+    //     'essentials_to_dos',
+    //     'essentials_todo_comments',
+    //     'essentials_todos_users',
+    //     'essentials_user_allowance_and_deductions',
+    //     'essentials_user_sales_targets',
+    //     'essentials_user_shifts',
+    //     'expense_categories',
+    //     'group_sub_taxes',
+    //     'invoice_layouts',
+    //     'invoice_schemes',
+    //     'media',
+    //     'migrations',
+    //     'model_has_permissions',
+    //     'model_has_roles',
+    //     'notification_templates',
+    //     'notifications',
+    //     'oauth_access_tokens',
+    //     'oauth_auth_codes',
+    //     'oauth_clients',
+    //     'oauth_personal_access_clients',
+    //     'oauth_refresh_tokens',
+    //     'packages',
+    //     'password_resets',
+    //     'permissions',
+    //     'printers',
+    //     'product_locations',
+    //     'product_racks',
+    //     'product_variations',
+    //     'products',
+    //     'purchase_lines',
+    //     'reference_counts',
+    //     'res_product_modifier_sets',
+    //     'res_tables',
+    //     'role_has_permissions',
+    //     'roles',
+    //     'sell_line_warranties',
+    //     'selling_price_groups',
+    //     'sessions',
+    //     'stock_adjustment_lines',
+    //     'subscriptions',
+    //     'superadmin_communicator_logs',
+    //     'superadmin_coupons',
+    //     'superadmin_frontend_pages',
+    //     'system',
+    //     'tax_rates',
+    //     'transaction_payments',
+    //     'transaction_sell_lines',
+    //     'transaction_sell_lines_purchase_lines',
+    //     'transactions',
+    //     'types_of_services',
+    //     'units',
+    //     'user_contact_access',
+    //     'users',
+    //     'update_logs',
+    //     'variation_group_prices',
+    //     'variation_location_details',
+    //     'variation_templates',
+    //     'variation_value_templates',
+    //     'variations',
+    //     'warranties'
+    // ];
 
     // public function pending()
     // {
@@ -136,10 +152,16 @@ class UpdateController extends Controller
 
     public function pending(Request $request)
     {
-        $clientVersion = $request->input('version'); // e.g. 1.0.3
+        $latestLog = UpdateLog::latest('id')->first();
+
+        $clientVersion = $latestLog->version ?? '0.0.0';
 
         // External API hit karo
-        $response = Http::get('https://your-live-server.com/api/version');
+        $url = env('UPDATEAPIURL') . '/api/version';
+
+        $response = Http::withOptions([
+            'verify' => false
+        ])->get($url);
 
         if (!$response->successful()) {
             return response()->json([
@@ -149,51 +171,91 @@ class UpdateController extends Controller
             ], 500);
         }
 
-        $latestVersion = $response->json('version'); // assuming API returns: { "version": "1.0.5" }
+        $latestVersion = $response->json()['version'];
 
-        if (version_compare($clientVersion, $latestVersion, '>=')) {
+
+
+        if (is_null($clientVersion) || version_compare($latestVersion, $clientVersion, 'gt')) {
             return response()->json([
-                'update_available' => false,
-                'log_id' => 0,
-                'message' => '',
+                'update_available' => true,
+                'log_id' => 1, // dummy ID, or skip
+                'message' => "New update {$latestVersion} is available.",
+                'version' => $latestVersion,
                 'current_version' => $clientVersion,
             ]);
         }
 
         return response()->json([
-            'update_available' => true,
-            'log_id' => 1, // dummy ID, or skip
-            'message' => "New update {$latestVersion} is available.",
+            'update_available' => false,
+            'log_id' => 0, // dummy ID, or skip
+            'message' => "Upto date.",
             'version' => $latestVersion,
             'current_version' => $clientVersion,
         ]);
     }
 
+    public function version()
+    {
+        $latestLog = AppVersion::where('is_force_update', 1)->latest('id')->first();
+
+        return response()->json([
+            'version' => $latestLog->version ?? '1.0.0',
+        ]);
+    }
+
     public function approve(Request $request)
     {
-        $log = UpdateLog::where('update_available', true)->latest()->first();
-
-        if (!$log) {
-            return response()->json(['success' => false, 'message' => 'No update found']);
-        }
-
-        $log->update(['status' => 'approved', 'updated_by' => $request->user()->name ?? 'Anonymous']);
-
         try {
+            // Step 1: Git Pull
             $output = shell_exec('cd ' . base_path() . ' && git pull origin main 2>&1');
 
-            $log->update([
-                'status' => 'success',
+            // Step 2: Get latest version from external API
+            $response = Http::withOptions([
+                'verify' => false
+            ])->get(env('UPDATEAPIURL') . '/api/version');
+
+            if (!$response->successful() || !$response->json('version')) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to fetch version from external API.',
+                ], 500);
+            }
+
+            $latestVersion = $response->json('version');
+
+            // Step 3: Get or Create Log Record
+            // $log = UpdateLog::where('update_available', 0)->latest()->first();
+
+            // if ($log) {
+            //     // Update existing log
+            //     $log->message = $output;
+            //     $log->update_available = 0;
+            //     $log->save();
+            // } else {
+            //     // Create new log if not found
+            //     UpdateLog::create([
+            //         'version' => $latestVersion,
+            //         'message' => $output,
+            //         'update_available' => 0,
+            //     ]);
+            // }
+
+            // Create new log if not found
+            UpdateLog::create([
+                'version' => !empty($latestVersion) ? $latestVersion : '1.0.0',
                 'message' => $output,
-                'update_available' => false,
+                'update_available' => 0,
             ]);
 
             return response()->json(['success' => true, 'output' => $output]);
         } catch (\Exception $e) {
-            $log->update([
-                'status' => 'failed',
-                'message' => $e->getMessage(),
-            ]);
+            // Optionally log as failed
+            if (isset($log)) {
+                $log->status = 'failed';
+                $log->message = $e->getMessage();
+                $log->save();
+            }
+
             return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
         }
     }
@@ -238,7 +300,7 @@ class UpdateController extends Controller
     private function fetchExportData($user_id, $business_id)
     {
         $exportData = [];
-        
+        $this->getTablesToExport();
         foreach ($this->tablesToExport as $table) {
             try {
                 $query = DB::table($table);
