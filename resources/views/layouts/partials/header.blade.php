@@ -54,7 +54,7 @@
                     @includeIf('essentials::layouts.partials.header_part')
                 @endif
                 @if(auth()->check() && session()->has('business.id'))
-                    <button style="color: white;" onclick="downloadSqlExport()" class="btn btn-outline-primary btn-sm tw-mb-3">
+                    <button name='' style="color: white;" onclick="downloadSqlExport()" class="btn btn-outline-primary btn-sm tw-mb-3">
                         📥 Download SQL Backup
                     </button>
                 @endif
